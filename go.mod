@@ -1,4 +1,4 @@
-module github.com/prometheus/consul_exporter
+module github.com/psyhomb/consul_exporter
 
 require (
 	github.com/go-kit/kit v0.9.0
