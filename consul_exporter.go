@@ -86,12 +86,12 @@ var (
 	nodeChecks = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, "", "health_node_status"),
 		"Status of health checks associated with a node.",
-		[]string{"check", "node", "status"}, nil,
+		[]string{"environment", "check", "node", "status"}, nil,
 	)
 	serviceChecks = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, "", "health_service_status"),
 		"Status of health checks associated with a service.",
-		[]string{"check", "node", "service_id", "service_name", "status"}, nil,
+		[]string{"environment", "check", "node", "service_id", "service_name", "status"}, nil,
 	)
 	keyValues = prometheus.NewDesc(
 		prometheus.BuildFQName(namespace, "", "catalog_kv"),
@@ -311,31 +311,41 @@ func (e *Exporter) collectHealthStateMetric(ch chan<- prometheus.Metric) bool {
 			maintenance = 1
 		}
 
+		// Extract environment tag and add it as label (e.g. environment="prod")
+		var environment string
+		re := regexp.MustCompile(`^environment=`)
+		for _, tag := range hc.ServiceTags {
+			if re.Match([]byte(tag)) {
+				environment = strings.Split(tag, "=")[1]
+				break
+			}
+		}
+
 		if hc.ServiceID == "" {
 			ch <- prometheus.MustNewConstMetric(
-				nodeChecks, prometheus.GaugeValue, passing, hc.CheckID, hc.Node, consul_api.HealthPassing,
+				nodeChecks, prometheus.GaugeValue, passing, environment, hc.CheckID, hc.Node, consul_api.HealthPassing,
 			)
 			ch <- prometheus.MustNewConstMetric(
-				nodeChecks, prometheus.GaugeValue, warning, hc.CheckID, hc.Node, consul_api.HealthWarning,
+				nodeChecks, prometheus.GaugeValue, warning, environment, hc.CheckID, hc.Node, consul_api.HealthWarning,
 			)
 			ch <- prometheus.MustNewConstMetric(
-				nodeChecks, prometheus.GaugeValue, critical, hc.CheckID, hc.Node, consul_api.HealthCritical,
+				nodeChecks, prometheus.GaugeValue, critical, environment, hc.CheckID, hc.Node, consul_api.HealthCritical,
 			)
 			ch <- prometheus.MustNewConstMetric(
-				nodeChecks, prometheus.GaugeValue, maintenance, hc.CheckID, hc.Node, consul_api.HealthMaint,
+				nodeChecks, prometheus.GaugeValue, maintenance, environment, hc.CheckID, hc.Node, consul_api.HealthMaint,
 			)
 		} else {
 			ch <- prometheus.MustNewConstMetric(
-				serviceChecks, prometheus.GaugeValue, passing, hc.CheckID, hc.Node, hc.ServiceID, hc.ServiceName, consul_api.HealthPassing,
+				serviceChecks, prometheus.GaugeValue, passing, environment, hc.CheckID, hc.Node, hc.ServiceID, hc.ServiceName, consul_api.HealthPassing,
 			)
 			ch <- prometheus.MustNewConstMetric(
-				serviceChecks, prometheus.GaugeValue, warning, hc.CheckID, hc.Node, hc.ServiceID, hc.ServiceName, consul_api.HealthWarning,
+				serviceChecks, prometheus.GaugeValue, warning, environment, hc.CheckID, hc.Node, hc.ServiceID, hc.ServiceName, consul_api.HealthWarning,
 			)
 			ch <- prometheus.MustNewConstMetric(
-				serviceChecks, prometheus.GaugeValue, critical, hc.CheckID, hc.Node, hc.ServiceID, hc.ServiceName, consul_api.HealthCritical,
+				serviceChecks, prometheus.GaugeValue, critical, environment, hc.CheckID, hc.Node, hc.ServiceID, hc.ServiceName, consul_api.HealthCritical,
 			)
 			ch <- prometheus.MustNewConstMetric(
-				serviceChecks, prometheus.GaugeValue, maintenance, hc.CheckID, hc.Node, hc.ServiceID, hc.ServiceName, consul_api.HealthMaint,
+				serviceChecks, prometheus.GaugeValue, maintenance, environment, hc.CheckID, hc.Node, hc.ServiceID, hc.ServiceName, consul_api.HealthMaint,
 			)
 		}
 	}
