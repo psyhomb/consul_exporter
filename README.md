@@ -13,6 +13,13 @@ make
 ./consul_exporter [flags]
 ```
 
+or
+
+```bash
+GOOS=linux GOARCH=amd64 go build -o consul_exporter
+./consul_exporter [flags]
+```
+
 ## Exported Metrics
 
 | Metric | Meaning | Labels |
