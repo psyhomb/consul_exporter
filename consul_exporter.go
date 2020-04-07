@@ -317,10 +317,10 @@ func (e *Exporter) collectHealthStateMetric(ch chan<- prometheus.Metric) bool {
 			"platform_unit_id": "",
 		}
 		for l := range labels {
-			re := regexp.MustCompile(fmt.Sprintf("^%s=", l))
+			re := regexp.MustCompile(fmt.Sprintf("^%s=(.+)$", l))
 			for _, t := range hc.ServiceTags {
 				if re.MatchString(t) {
-					labels[l] = strings.Split(t, "=")[1]
+					labels[l] = re.FindStringSubmatch(t)[1]
 					break
 				}
 			}
