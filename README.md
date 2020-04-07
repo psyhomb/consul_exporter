@@ -13,11 +13,14 @@ make
 ./consul_exporter [flags]
 ```
 
-or
+To build docker image:
 
 ```bash
-GOOS=linux GOARCH=amd64 go build -o consul_exporter
-./consul_exporter [flags]
+BUILD_DIR=".build/linux-amd64"
+mkdir -p ${BUILD_DIR}
+docker run -it --rm --name gobuild -v $(pwd):/root/tmp -w /root/tmp golang make
+mv consul_exporter ${BUILD_DIR}
+docker build --no-cache -t psyhomb/consul-exporter:v$(head -1 VERSION) .
 ```
 
 ## Exported Metrics
